@@ -18,7 +18,15 @@ try {
 
 async function getBrowser() {
   return puppeteer.launch({
-    args: chromium.args,
+    args: [
+      ...chromium.args,
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--disable-web-security',
+      '--disable-features=IsolateOrigins,site-per-process'
+    ],
     defaultViewport: chromium.defaultViewport,
     executablePath: await chromium.executablePath(),
     headless: chromium.headless,
@@ -55,12 +63,15 @@ async function parseWithPuppeteer(url) {
   //     '--single-process'
   //   ]
   // });
-  const browser = await getBrowser()
-  const page = await browser.newPage();
-  await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-  const html = await page.content();
-  await browser.close();
-  return html;
+   try {
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await new Promise(r => setTimeout(r, 2000));
+    const html = await page.content();
+    return html;
+  } finally {
+    await browser.close();
+  }
 }
 
 // Специальный обработчик для Maersk трекинга
@@ -89,31 +100,24 @@ app.post('/api/parse-maersk', async (req, res) => {
 
     const page = await browser.newPage();
 
-    // Перехватываем API ответ прямо в браузере
     let trackingData = null;
-
     await page.setRequestInterception(true);
     page.on('request', req => req.continue());
-
     page.on('response', async response => {
       const respUrl = response.url();
-      if (respUrl.includes('synergy/tracking') || respUrl.includes('/tracking/')) {
+      if (respUrl.includes('synergy/tracking')) {
         try {
           const json = await response.json();
           trackingData = json;
         } catch {}
       }
     });
-
+  
     await page.goto(`https://www.maersk.com/tracking/${trackingNumber}`, {
-      waitUntil: 'networkidle2',
-      timeout: 30000
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
     });
-
-    // Ждём ещё немного чтобы API успел ответить
-    await new Promise(r => setTimeout(r, 3000));
-
-    await browser.close();
+    await new Promise(r => setTimeout(r, 5000));
 
     if (trackingData) {
       res.json({ trackingNumber, ...trackingData });
