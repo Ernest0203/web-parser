@@ -6,14 +6,23 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const cheerio = require('cheerio');
 const axios = require('axios');
 const path = require('path');
+const chromium = require('@sparticuz/chromium')
 
 const { execSync } = require('child_process');
-
 try {
   const result = execSync('which chromium || which chromium-browser || which google-chrome').toString();
   console.log('Chromium found at:', result);
 } catch(e) {
   console.log('Chromium NOT found:', e.message);
+}
+
+async function getBrowser() {
+  return puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
+  });
 }
 
 const app = express();
@@ -35,17 +44,18 @@ async function detectIfSPA(url) {
 }
 
 async function parseWithPuppeteer(url) {
-  browser = await puppeteer.launch({
-    headless: true,
-    executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--single-process'
-    ]
-  });
+  // browser = await puppeteer.launch({
+  //   headless: true,
+  //   executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
+  //   args: [
+  //     '--no-sandbox',
+  //     '--disable-setuid-sandbox',
+  //     '--disable-dev-shm-usage',
+  //     '--disable-gpu',
+  //     '--single-process'
+  //   ]
+  // });
+  const browser = await getBrowser()
   const page = await browser.newPage();
   await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
   const html = await page.content();
@@ -65,16 +75,17 @@ app.post('/api/parse-maersk', async (req, res) => {
 
   let browser;
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      executablePath: process.env.CHROMIUM_PATH || undefined,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu'
-      ]
-    });
+    // browser = await puppeteer.launch({
+    //   headless: true,
+    //   executablePath: process.env.CHROMIUM_PATH || undefined,
+    //   args: [
+    //     '--no-sandbox',
+    //     '--disable-setuid-sandbox',
+    //     '--disable-dev-shm-usage',
+    //     '--disable-gpu'
+    //   ]
+    // });
+    browser = await getBrowser()
 
     const page = await browser.newPage();
 
