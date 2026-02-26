@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 const axios = require('axios');
 const path = require('path');
@@ -25,7 +25,6 @@ async function detectIfSPA(url) {
 async function parseWithPuppeteer(url) {
   const browser = await puppeteer.launch({
     headless: 'new',
-    executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium' || '/usr/bin/chromium-browser',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
