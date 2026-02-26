@@ -7,6 +7,15 @@ const cheerio = require('cheerio');
 const axios = require('axios');
 const path = require('path');
 
+const { execSync } = require('child_process');
+
+try {
+  const result = execSync('which chromium || which chromium-browser || which google-chrome').toString();
+  console.log('Chromium found at:', result);
+} catch(e) {
+  console.log('Chromium NOT found:', e.message);
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
