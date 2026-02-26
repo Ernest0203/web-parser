@@ -41,6 +41,7 @@ export default function App() {
     }
   };
 
+
   const tabs = ['headings', 'paragraphs', 'links', 'images', 'meta'];
 
   return (
@@ -175,7 +176,7 @@ export default function App() {
                 {trackingData.containers?.[0]?.status}
               </div>
             </div>
-                
+
             {/* Контейнер инфо */}
             {trackingData.containers?.map(container => (
               <div key={container.container_num}>
@@ -210,7 +211,7 @@ export default function App() {
                 ))}
               </div>
             ))}
-        
+
             {/* Скачать JSON */}
             <button
               onClick={() => {
