@@ -7,6 +7,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('headings');
+  const [tracking, setTracking] = useState('');
+  const [trackingData, setTrackingData] = useState(null);
 
   const parse = async () => {
     if (!url) return;
@@ -19,6 +21,21 @@ export default function App() {
       setData(res.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Ошибка парсинга');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const parseTracking = async () => {
+    if (!tracking) return;
+    setLoading(true);
+    setError('');
+    try {
+      const res = await axios.post('/api/parse-maersk', { url: tracking });
+      setTrackingData(res.data);
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.error || 'Ошибка трекинга');
     } finally {
       setLoading(false);
     }
@@ -120,6 +137,97 @@ export default function App() {
           </div>
         </div>
       )}
+
+      <div style={{ marginTop: 32, borderTop: '1px solid #eee', paddingTop: 24 }}>
+        <h2>🚢 Maersk Tracking</h2>
+        <div style={{ display: 'flex', gap: 8 }}>
+        <input
+          type="text"
+          placeholder="https://www.maersk.com/tracking/MSKU7430014"
+          value={tracking}
+          onChange={e => setTracking(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && parseTracking()}
+          style={{ flex: 1, padding: '10px 14px', fontSize: 16, borderRadius: 8, border: '1px solid #ccc' }}
+        />
+        <button
+          onClick={parseTracking}
+          disabled={loading}
+          style={{ padding: '10px 24px', fontSize: 16, borderRadius: 8, background: '#0073ab', color: '#fff', border: 'none', cursor: 'pointer' }}
+        >
+          {loading ? '⏳...' : 'Track'}
+        </button>
+      </div>
+
+        {trackingData && (
+          <div style={{ marginTop: 16 }}>
+            {/* Маршрут */}
+            <div style={{ background: '#f0f8ff', borderRadius: 8, padding: 16, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontWeight: 'bold', fontSize: 18 }}>{trackingData.origin?.city}</div>
+                <div style={{ color: '#666', fontSize: 13 }}>{trackingData.origin?.country}</div>
+              </div>
+              <div style={{ flex: 1, textAlign: 'center', fontSize: 24 }}>→</div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontWeight: 'bold', fontSize: 18 }}>{trackingData.destination?.city}</div>
+                <div style={{ color: '#666', fontSize: 13 }}>{trackingData.destination?.country}</div>
+              </div>
+              <div style={{ marginLeft: 'auto', background: trackingData.containers?.[0]?.status === 'IN_PROGRESS' ? '#22c55e' : '#94a3b8', color: '#fff', borderRadius: 6, padding: '4px 12px', fontSize: 13 }}>
+                {trackingData.containers?.[0]?.status}
+              </div>
+            </div>
+                
+            {/* Контейнер инфо */}
+            {trackingData.containers?.map(container => (
+              <div key={container.container_num}>
+                <div style={{ background: '#f9f9f9', borderRadius: 8, padding: 12, marginBottom: 12, display: 'flex', gap: 24 }}>
+                  <div><span style={{ color: '#666', fontSize: 12 }}>Контейнер</span><div style={{ fontWeight: 'bold' }}>{container.container_num}</div></div>
+                  <div><span style={{ color: '#666', fontSize: 12 }}>Размер</span><div style={{ fontWeight: 'bold' }}>{container.container_size}ft</div></div>
+                  <div><span style={{ color: '#666', fontSize: 12 }}>Тип</span><div style={{ fontWeight: 'bold' }}>{container.container_type}</div></div>
+                  <div><span style={{ color: '#666', fontSize: 12 }}>ETA</span><div style={{ fontWeight: 'bold' }}>{new Date(container.eta_final_delivery).toLocaleDateString('ru-RU')}</div></div>
+                </div>
+            
+                {/* События по локациям */}
+                {container.locations?.map((loc, i) => (
+                  <div key={i} style={{ marginBottom: 16 }}>
+                    <div style={{ fontWeight: 'bold', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span>📍</span>
+                      <span>{loc.city}, {loc.country}</span>
+                      <span style={{ color: '#666', fontSize: 12, fontWeight: 'normal' }}>{loc.terminal}</span>
+                    </div>
+                    {loc.events?.map((event, j) => (
+                      <div key={j} style={{ display: 'flex', gap: 12, padding: '6px 0 6px 24px', borderLeft: '2px solid #e5e7eb', marginLeft: 8 }}>
+                        <div style={{ width: 160, color: '#666', fontSize: 13 }}>
+                          {new Date(event.event_time).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                        <div style={{ fontWeight: 500 }}>{event.activity}</div>
+                        {event.vessel_name && <div style={{ color: '#4f46e5', fontSize: 13 }}>🚢 {event.vessel_name} {event.voyage_num}</div>}
+                        <div style={{ marginLeft: 'auto', fontSize: 12, color: event.event_time_type === 'ACTUAL' ? '#22c55e' : '#f59e0b' }}>
+                          {event.event_time_type === 'ACTUAL' ? '✓ факт' : '⏳ план'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ))}
+        
+            {/* Скачать JSON */}
+            <button
+              onClick={() => {
+                const blob = new Blob([JSON.stringify(trackingData, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${trackingData.trackingNumber}.json`;
+                a.click();
+              }}
+              style={{ marginTop: 8, padding: '8px 16px', borderRadius: 6, border: '1px solid #ccc', cursor: 'pointer' }}
+            >
+              ⬇️ Скачать JSON
+            </button>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }
