@@ -7,5 +7,5 @@ services:
     envVars:
       - key: CHROMIUM_PATH
         value: /usr/bin/chromium
-      - key: NODE_ENV
-        value: production
+      - key: NODE_VERSION
+        value: 20.19.0

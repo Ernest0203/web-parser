@@ -26,14 +26,15 @@ async function detectIfSPA(url) {
 }
 
 async function parseWithPuppeteer(url) {
-  const browser = await puppeteer.launch({
+  browser = await puppeteer.launch({
     headless: true,
-    executablePath: process.env.CHROMIUM_PATH || undefined,
+    executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
-      '--disable-gpu'
+      '--disable-gpu',
+      '--single-process'
     ]
   });
   const page = await browser.newPage();
