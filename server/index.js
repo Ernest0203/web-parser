@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 const cheerio = require('cheerio');
 const axios = require('axios');
 const path = require('path');
@@ -25,11 +25,13 @@ async function detectIfSPA(url) {
 async function parseWithPuppeteer(url) {
   const browser = await puppeteer.launch({
     headless: 'new',
+    executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
-      '--disable-gpu'
+      '--disable-gpu',
+      '--single-process'
     ]
   });
   const page = await browser.newPage();
@@ -38,6 +40,23 @@ async function parseWithPuppeteer(url) {
   await browser.close();
   return html;
 }
+
+// async function parseWithPuppeteer(url) {
+//   const browser = await puppeteer.launch({
+//     headless: 'new',
+//     args: [
+//       '--no-sandbox',
+//       '--disable-setuid-sandbox',
+//       '--disable-dev-shm-usage',
+//       '--disable-gpu'
+//     ]
+//   });
+//   const page = await browser.newPage();
+//   await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+//   const html = await page.content();
+//   await browser.close();
+//   return html;
+// }
 
 async function parseWithAxios(url) {
   const res = await axios.get(url, {
