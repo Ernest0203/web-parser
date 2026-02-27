@@ -8,23 +8,54 @@ const path = require('path');
 
 puppeteer.use(StealthPlugin());
 
-async function getBrowser() {
-  const isProduction = process.env.NODE_ENV === 'production';
+// async function getBrowser() {
+//   const isProduction = process.env.NODE_ENV === 'production';
+//   if (isProduction) {
+//     const chromium = require('@sparticuz/chromium');
+//     return puppeteer.launch({
+//       args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
+//       defaultViewport: chromium.defaultViewport,
+//       executablePath: await chromium.executablePath(),
+//       headless: chromium.headless,
+//     });
+//   } else {
+//     const localPuppeteer = require('puppeteer');
+//     return localPuppeteer.launch({
+//       headless: true,
+//       args: ['--no-sandbox', '--disable-setuid-sandbox']
+//     });
+//   }
+// }
 
-  if (isProduction) {
+async function getBrowser() {
+  if (process.env.NODE_ENV === 'production') {
     const chromium = require('@sparticuz/chromium');
+    chromium.setHeadlessMode = true;
+    chromium.setGraphicsMode = false;
     return puppeteer.launch({
-      args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
-      defaultViewport: chromium.defaultViewport,
+      headless: true,
       executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
+      args: [
+        ...chromium.args,
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-web-security',
+      ],
+      defaultViewport: { width: 1280, height: 720 }
     });
   } else {
-    const localPuppeteer = require('puppeteer');
-    return localPuppeteer.launch({
+    return puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+      executablePath: process.env.CHROMIUM_PATH || undefined,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu'
+      ]
+    })
   }
 }
 
@@ -204,16 +235,17 @@ app.post('/api/parse-maersk', async (req, res) => {
 
   let browser;
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      executablePath: process.env.CHROMIUM_PATH || undefined,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu'
-      ]
-    });
+    browser = await getBrowser();
+    // browser = await puppeteer.launch({
+    //   headless: true,
+    //   executablePath: process.env.CHROMIUM_PATH || undefined,
+    //   args: [
+    //     '--no-sandbox',
+    //     '--disable-setuid-sandbox',
+    //     '--disable-dev-shm-usage',
+    //     '--disable-gpu'
+    //   ]
+    // });
 
     const page = await browser.newPage();
 
