@@ -266,13 +266,18 @@ app.post('/api/parse-maersk', async (req, res) => {
       }
     });
 
+    // await page.goto(`https://www.maersk.com/tracking/${trackingNumber}`, {
+    //   waitUntil: 'networkidle2',
+    //   timeout: 30000
+    // });
+
     await page.goto(`https://www.maersk.com/tracking/${trackingNumber}`, {
-      waitUntil: 'networkidle2',
-      timeout: 30000
+      waitUntil: 'domcontentloaded',
+      timeout: 120000
     });
 
     // Ждём ещё немного чтобы API успел ответить
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise(r => setTimeout(r, 10000));
 
     await browser.close();
 
