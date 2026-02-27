@@ -29,10 +29,11 @@ puppeteer.use(StealthPlugin());
 
 async function getBrowser() {
   if (process.env.NODE_ENV === 'production') {
+    const localPuppeteer = require('puppeteer');
     const chromium = require('@sparticuz/chromium');
     chromium.setHeadlessMode = true;
     chromium.setGraphicsMode = false;
-    return puppeteer.launch({
+    return localPuppeteer.launch({
       headless: true,
       executablePath: await chromium.executablePath(),
       args: [
