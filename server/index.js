@@ -31,7 +31,7 @@ puppeteer.use(StealthPlugin());
 
 async function getBrowser() {
   if (process.env.NODE_ENV === 'production') {
-    const localPuppeteer = require('puppeteer');
+    //const localPuppeteer = require('puppeteer');
     // const chromium = require('@sparticuz/chromium');
     // chromium.setHeadlessMode = true;
     // chromium.setGraphicsMode = false;
@@ -49,7 +49,7 @@ async function getBrowser() {
     //   defaultViewport: { width: 1280, height: 720 }
     // });
 
-    return localPuppeteer.connect({
+    return puppeteer.connect({
       browserWSEndpoint: `wss://chrome.browserless.io?token=${'2U3cX9Kb2b9bxBYfb80cb0b5f1f7e74fc41f528598753362d'}`
     });
   } else {
