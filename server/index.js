@@ -253,6 +253,8 @@ app.post('/api/parse-maersk', async (req, res) => {
     // Перехватываем API ответ прямо в браузере
     let trackingData = null;
 
+    await new Promise(r => setTimeout(r, 1000));
+
     await page.setRequestInterception(true);
     page.on('request', req => req.continue());
 
