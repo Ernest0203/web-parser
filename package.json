@@ -13,7 +13,8 @@
     "@sparticuz/chromium": "^119.0.0",
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "dotenv": "^17.3.1"
   },
   "engines": {
     "node": "20.19.0"
