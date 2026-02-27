@@ -27,24 +27,30 @@ puppeteer.use(StealthPlugin());
 //   }
 // }
 
+//2U3cX9Kb2b9bxBYfb80cb0b5f1f7e74fc41f528598753362d
+
 async function getBrowser() {
   if (process.env.NODE_ENV === 'production') {
     const localPuppeteer = require('puppeteer');
-    const chromium = require('@sparticuz/chromium');
-    chromium.setHeadlessMode = true;
-    chromium.setGraphicsMode = false;
-    return localPuppeteer.launch({
-      headless: true,
-      executablePath: await chromium.executablePath(),
-      args: [
-        ...chromium.args,
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--disable-web-security',
-      ],
-      defaultViewport: { width: 1280, height: 720 }
+    // const chromium = require('@sparticuz/chromium');
+    // chromium.setHeadlessMode = true;
+    // chromium.setGraphicsMode = false;
+    // return localPuppeteer.launch({
+    //   headless: true,
+    //   executablePath: await chromium.executablePath(),
+    //   args: [
+    //     ...chromium.args,
+    //     '--no-sandbox',
+    //     '--disable-setuid-sandbox',
+    //     '--disable-dev-shm-usage',
+    //     '--disable-gpu',
+    //     '--disable-web-security',
+    //   ],
+    //   defaultViewport: { width: 1280, height: 720 }
+    // });
+
+    return localPuppeteer.connect({
+      browserWSEndpoint: `wss://chrome.browserless.io?token=${'2U3cX9Kb2b9bxBYfb80cb0b5f1f7e74fc41f528598753362d'}`
     });
   } else {
     return puppeteer.launch({
