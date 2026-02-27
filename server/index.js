@@ -8,7 +8,7 @@ const path = require('path');
 require('dotenv').config();
 
 puppeteer.use(StealthPlugin());
-
+ 
 async function getBrowser() {
   if (process.env.NODE_ENV === 'production') {
     //const localPuppeteer = require('puppeteer');
