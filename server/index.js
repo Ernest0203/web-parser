@@ -30,7 +30,7 @@ async function getBrowser() {
     // });
 
     return puppeteer.connect({
-      browserWSEndpoint: `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_TOKEN}`,
+      browserWSEndpoint: `wss://chrome.browserless.io?token=${'2U3cX9Kb2b9bxBYfb80cb0b5f1f7e74fc41f528598753362d'}`,
     });
   } else {
     return puppeteer.launch({
